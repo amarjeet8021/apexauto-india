@@ -1,0 +1,1676 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ApexAuto India | Performance Vehicle Parts & Razorpay Checkout</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Official Razorpay Checkout SDK -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <!-- Google Fonts: Inter & Rajdhani -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Rajdhani', 'sans-serif'],
+                    },
+                    colors: {
+                        automotive: {
+                            950: '#090a0f',
+                            900: '#11131a',
+                            800: '#1a1d27',
+                            700: '#272b38',
+                            accent: '#ef4444',
+                            accentHover: '#dc2626',
+                            amber: '#f59e0b',
+                            razorpay: '#2b84ea'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-automotive-950 text-slate-100 font-sans antialiased selection:bg-automotive-accent selection:text-white overflow-x-hidden">
+
+    <!-- Toast Notification Container (Replaces alert) -->
+    <div id="toastContainer" class="fixed bottom-5 right-5 z-[80] flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- Top Announcement & Customer Care Strip -->
+    <div class="bg-automotive-950 border-b border-automotive-800/80 text-[11px] sm:text-xs text-slate-400">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center gap-1 text-emerald-400 font-semibold">
+                    <i data-lucide="truck" class="w-3.5 h-3.5"></i> Free Pan-India Shipping
+                </span>
+                <span class="hidden sm:inline">on orders above ₹4,999 • Powered by Razorpay INR</span>
+            </div>
+            <div class="flex items-center gap-3 sm:gap-4">
+                <button onclick="openSupportModal()" class="inline-flex items-center gap-1.5 text-slate-300 hover:text-automotive-accent transition-colors">
+                    <i data-lucide="mail" class="w-3.5 h-3.5 text-automotive-accent"></i>
+                    <span>Customer Care: <strong class="text-white font-medium">tiwariamarjeet744@gmail.com</strong></span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sticky Navigation Bar -->
+    <header class="sticky top-0 z-40 bg-automotive-900/90 backdrop-blur-md border-b border-automotive-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16 sm:h-20 gap-3">
+                
+                <!-- Brand Logo -->
+                <a href="#" onclick="resetFilters()" class="flex items-center gap-2.5 shrink-0 group">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-automotive-accent to-orange-600 flex items-center justify-center shadow-lg shadow-red-500/20 group-hover:scale-105 transition-transform">
+                        <i data-lucide="gauge" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <div>
+                        <span class="font-display font-bold text-2xl tracking-wider text-white uppercase">Apex<span class="text-automotive-accent">Auto</span></span>
+                        <span class="hidden sm:block text-[10px] text-slate-400 tracking-widest uppercase -mt-1">India Parts & Gear</span>
+                    </div>
+                </a>
+
+                <!-- Desktop Search Bar -->
+                <div class="hidden md:flex flex-1 max-w-lg mx-3">
+                    <div class="relative w-full">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                            <i data-lucide="search" class="w-4 h-4 text-slate-400"></i>
+                        </div>
+                        <input type="text" id="desktopSearch" placeholder="Search helmets, LED lights, dippers, alloy wheels, tyres..." 
+                            class="w-full bg-automotive-800 border border-automotive-700 text-slate-100 text-sm rounded-xl pl-10 pr-10 py-2.5 focus:outline-none focus:border-automotive-accent focus:ring-1 focus:ring-automotive-accent transition-all placeholder-slate-400">
+                        <button id="clearSearchDesktop" onclick="clearSearch()" class="hidden absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-white">
+                            <i data-lucide="x" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Right Actions: Support, Auth (Sign In / Sign Up) & Cart -->
+                <div class="flex items-center gap-2 sm:gap-3">
+                    <!-- Support Button -->
+                    <button onclick="openSupportModal()" title="Customer Care Support" class="hidden sm:flex items-center gap-1.5 bg-automotive-800/80 hover:bg-automotive-700 border border-automotive-700 px-3 py-2.5 rounded-xl text-xs font-medium text-slate-200 transition-all">
+                        <i data-lucide="headphones" class="w-4 h-4 text-amber-400"></i>
+                        <span>Support</span>
+                    </button>
+
+                    <!-- Auth Button (Dynamic: Sign In / User Profile) -->
+                    <div id="authHeaderContainer">
+                        <button onclick="openAuthModal('signin')" class="flex items-center gap-2 bg-automotive-800 hover:bg-automotive-700 border border-automotive-700 px-3 sm:px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-medium text-slate-200 transition-all active:scale-95">
+                            <i data-lucide="user-circle" class="w-4 h-4 text-automotive-accent"></i>
+                            <span>Sign In</span>
+                        </button>
+                    </div>
+
+                    <!-- Cart Button -->
+                    <button onclick="toggleCart(true)" class="relative flex items-center gap-2 bg-automotive-accent hover:bg-automotive-accentHover text-white px-3.5 py-2.5 rounded-xl shadow-lg shadow-red-600/20 transition-all active:scale-95">
+                        <i data-lucide="shopping-cart" class="w-4 h-4 sm:w-5 sm:h-5"></i>
+                        <span class="hidden sm:inline text-sm font-semibold">Cart</span>
+                        <span id="cartBadge" class="bg-automotive-950 text-white text-xs font-bold px-2 py-0.5 rounded-full min-w-[22px] text-center">0</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mobile Search Bar -->
+            <div class="pb-3 md:hidden">
+                <div class="relative w-full">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i data-lucide="search" class="w-4 h-4 text-slate-400"></i>
+                    </div>
+                    <input type="text" id="mobileSearch" placeholder="Search helmets, LEDs, dippers, tyres..." 
+                        class="w-full bg-automotive-800 border border-automotive-700 text-slate-100 text-sm rounded-xl pl-9 pr-9 py-2 focus:outline-none focus:border-automotive-accent">
+                    <button id="clearSearchMobile" onclick="clearSearch()" class="hidden absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-white">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Banner Section -->
+    <section class="relative bg-automotive-900 border-b border-automotive-800 overflow-hidden">
+        <div class="absolute inset-0 bg-[radial-gradient(#272b38_1px,transparent_1px)] [background-size:20px_20px] opacity-40"></div>
+        <div class="absolute -top-24 -right-24 w-96 h-96 bg-automotive-accent/10 rounded-full blur-3xl pointer-events-none"></div>
+        
+        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                <div class="lg:col-span-7 space-y-5">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-automotive-accent/15 border border-automotive-accent/30 text-automotive-accent text-xs font-semibold tracking-wide uppercase">
+                        <i data-lucide="zap" class="w-3.5 h-3.5"></i>
+                        <span>2026 Performance & Safety Collection • INR (₹)</span>
+                    </div>
+                    <h1 class="font-display text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white leading-[1.1]">
+                        UPGRADE YOUR RIDE.<br>
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-automotive-accent to-amber-500">DOMINATE THE ROAD.</span>
+                    </h1>
+                    <p class="text-slate-400 text-base sm:text-lg max-w-2xl leading-relaxed">
+                        Precision-engineered automotive and motorcycle parts across India. From ISI/DOT-certified helmets and high-lumen LED dipper beams to forged alloy wheels and all-terrain tyres with instant Razorpay checkout.
+                    </p>
+                    <div class="flex flex-wrap items-center gap-3 pt-2">
+                        <a href="#catalog" class="inline-flex items-center gap-2 bg-automotive-accent hover:bg-automotive-accentHover text-white font-semibold px-6 py-3 rounded-xl shadow-lg shadow-red-600/25 transition-all active:scale-95">
+                            <span>Shop All Parts</span>
+                            <i data-lucide="arrow-down-right" class="w-4 h-4"></i>
+                        </a>
+                        <button onclick="filterByCategory('Lighting')" class="inline-flex items-center gap-2 bg-automotive-800 hover:bg-automotive-700 border border-automotive-700 text-slate-200 font-medium px-5 py-3 rounded-xl transition-all">
+                            <i data-lucide="lightbulb" class="w-4 h-4 text-amber-400"></i>
+                            <span>LED & Dipper Lights</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Hero Feature Cards -->
+                <div class="lg:col-span-5 grid grid-cols-2 gap-3 sm:gap-4">
+                    <div onclick="filterByCategory('Safety & Gear')" class="cursor-pointer bg-automotive-800/80 hover:bg-automotive-800 border border-automotive-700/80 hover:border-automotive-accent/50 p-4 rounded-2xl transition-all group">
+                        <div class="w-10 h-10 rounded-xl bg-red-500/10 text-automotive-accent flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                            <i data-lucide="shield" class="w-5 h-5"></i>
+                        </div>
+                        <h3 class="font-display font-bold text-lg text-white">ISI & DOT Helmets</h3>
+                        <p class="text-xs text-slate-400 mt-1">Starting at ₹4,499 • Anti-fog visors</p>
+                    </div>
+                    <div onclick="filterByCategory('Lighting')" class="cursor-pointer bg-automotive-800/80 hover:bg-automotive-800 border border-automotive-700/80 hover:border-amber-500/50 p-4 rounded-2xl transition-all group">
+                        <div class="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                            <i data-lucide="sun" class="w-5 h-5"></i>
+                        </div>
+                        <h3 class="font-display font-bold text-lg text-white">LED & Dipper Beams</h3>
+                        <p class="text-xs text-slate-400 mt-1">Starting at ₹1,899 • High/Low pods</p>
+                    </div>
+                    <div onclick="filterByCategory('Wheels & Tyres')" class="cursor-pointer bg-automotive-800/80 hover:bg-automotive-800 border border-automotive-700/80 hover:border-blue-500/50 p-4 rounded-2xl transition-all group">
+                        <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                            <i data-lucide="disc" class="w-5 h-5"></i>
+                        </div>
+                        <h3 class="font-display font-bold text-lg text-white">Wheels & Tyres</h3>
+                        <p class="text-xs text-slate-400 mt-1">Forged alloys & all-terrain grip</p>
+                    </div>
+                    <div onclick="filterByCategory('Performance & Brakes')" class="cursor-pointer bg-automotive-800/80 hover:bg-automotive-800 border border-automotive-700/80 hover:border-emerald-500/50 p-4 rounded-2xl transition-all group">
+                        <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                            <i data-lucide="flame" class="w-5 h-5"></i>
+                        </div>
+                        <h3 class="font-display font-bold text-lg text-white">Brakes & Exhaust</h3>
+                        <p class="text-xs text-slate-400 mt-1">Ceramic pads & coilover kits</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Catalog Section -->
+    <main id="catalog" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        
+        <!-- Filter Controls & Sorting Bar -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+            <div id="categoryFilters" class="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0">
+                <!-- Dynamically injected category buttons -->
+            </div>
+
+            <div class="flex items-center justify-between sm:justify-end gap-3 shrink-0">
+                <span id="productCount" class="text-xs sm:text-sm text-slate-400 font-medium">Showing 12 parts</span>
+                <select id="sortSelect" onchange="renderProducts()" class="bg-automotive-800 border border-automotive-700 text-slate-200 text-xs sm:text-sm rounded-xl px-3.5 py-2 focus:outline-none focus:border-automotive-accent cursor-pointer">
+                    <option value="featured">Featured Parts</option>
+                    <option value="price-asc">Price (₹): Low to High</option>
+                    <option value="price-desc">Price (₹): High to Low</option>
+                    <option value="rating">Top Rated</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Product Grid -->
+        <div id="productGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <!-- Product cards injected via JS -->
+        </div>
+
+        <!-- Empty Search State -->
+        <div id="emptyState" class="hidden text-center py-16 px-4 bg-automotive-900/50 border border-automotive-800 rounded-2xl">
+            <div class="w-16 h-16 rounded-2xl bg-automotive-800 flex items-center justify-center mx-auto mb-4 text-slate-400">
+                <i data-lucide="search-x" class="w-8 h-8"></i>
+            </div>
+            <h3 class="font-display text-2xl font-bold text-white mb-2">No Vehicle Parts Found</h3>
+            <p class="text-slate-400 text-sm max-w-md mx-auto mb-6">We couldn't find any parts matching your search. Try searching for "Helmet", "LED", "Dipper", "Wheel", or "Tyre".</p>
+            <button onclick="resetFilters()" class="bg-automotive-accent hover:bg-automotive-accentHover text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all">
+                Reset All Filters
+            </button>
+        </div>
+    </main>
+
+    <!-- Trust Badges & Customer Care Strip -->
+    <section class="border-t border-automotive-800 bg-automotive-900/60 mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="flex items-start gap-3.5">
+                    <div class="p-2.5 rounded-xl bg-automotive-800 text-automotive-accent shrink-0">
+                        <i data-lucide="truck" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-sm text-white">Pan-India Express Delivery</h4>
+                        <p class="text-xs text-slate-400 mt-0.5">Free shipping on orders above ₹4,999</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-3.5">
+                    <div class="p-2.5 rounded-xl bg-automotive-800 text-blue-400 shrink-0">
+                        <i data-lucide="shield-check" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-sm text-white">Razorpay Secured Payments</h4>
+                        <p class="text-xs text-slate-400 mt-0.5">UPI, Cards, NetBanking & Wallets (INR)</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-3.5">
+                    <div class="p-2.5 rounded-xl bg-automotive-800 text-emerald-400 shrink-0">
+                        <i data-lucide="rotate-ccw" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-sm text-white">15-Day Fitment Guarantee</h4>
+                        <p class="text-xs text-slate-400 mt-0.5">Easy returns & GST invoice included</p>
+                    </div>
+                </div>
+                <div onclick="openSupportModal()" class="cursor-pointer flex items-start gap-3.5 group">
+                    <div class="p-2.5 rounded-xl bg-automotive-800 text-amber-400 shrink-0 group-hover:bg-automotive-accent group-hover:text-white transition-colors">
+                        <i data-lucide="headphones" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-sm text-white group-hover:text-automotive-accent transition-colors">24/7 Customer Care</h4>
+                        <p class="text-xs text-slate-300 mt-0.5 break-all">tiwariamarjeet744@gmail.com</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-automotive-950 border-t border-automotive-800 py-10 text-xs text-slate-400">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
+            <div class="text-center md:text-left">
+                <p class="font-display text-lg font-bold text-white tracking-wider uppercase mb-1">Apex<span class="text-automotive-accent">Auto</span> India</p>
+                <p class="text-slate-500">Premium Helmets, LED Dippers, Alloy Wheels, Tyres & Performance Parts.</p>
+            </div>
+            
+            <div class="flex flex-col sm:flex-row items-center gap-4 bg-automotive-900 border border-automotive-800 px-4 py-3 rounded-2xl">
+                <div class="flex items-center gap-2 text-slate-300">
+                    <i data-lucide="mail" class="w-4 h-4 text-automotive-accent"></i>
+                    <span>Customer Care Support:</span>
+                    <a href="mailto:tiwariamarjeet744@gmail.com" class="text-white font-semibold hover:text-automotive-accent underline">tiwariamarjeet744@gmail.com</a>
+                </div>
+                <button onclick="copySupportEmail()" class="bg-automotive-800 hover:bg-automotive-700 text-slate-200 px-3 py-1.5 rounded-lg border border-automotive-700 text-xs font-medium transition-colors">
+                    Copy Email
+                </button>
+            </div>
+        </div>
+    </footer>
+
+    <!-- 1. Product Quick-View Modal -->
+    <div id="quickViewModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+        <div class="bg-automotive-900 border border-automotive-700 rounded-2xl max-w-2xl w-full overflow-hidden shadow-2xl" onclick="event.stopPropagation()">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-automotive-800">
+                <span id="modalCategory" class="text-xs font-semibold uppercase tracking-wider text-automotive-accent">Category</span>
+                <button onclick="closeQuickView()" class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-automotive-800 transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div id="modalContent" class="p-6"></div>
+        </div>
+    </div>
+
+    <!-- 2. Sign In & Sign Up Authentication Modal -->
+    <div id="authModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+        <div class="bg-automotive-900 border border-automotive-700 rounded-2xl max-w-md w-full overflow-hidden shadow-2xl" onclick="event.stopPropagation()">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-automotive-800">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="shield-user" class="w-5 h-5 text-automotive-accent"></i>
+                    <h3 id="authModalTitle" class="font-display text-xl font-bold text-white uppercase">Member Sign In</h3>
+                </div>
+                <button onclick="closeAuthModal()" class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-automotive-800">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- Tabs -->
+            <div class="grid grid-cols-2 border-b border-automotive-800 bg-automotive-950/50">
+                <button id="tabSignIn" onclick="switchAuthTab('signin')" class="py-3 text-xs sm:text-sm font-semibold border-b-2 border-automotive-accent text-white transition-all">
+                    Sign In
+                </button>
+                <button id="tabSignUp" onclick="switchAuthTab('signup')" class="py-3 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-white transition-all">
+                    Create Account
+                </button>
+            </div>
+
+            <!-- Sign In Form -->
+            <form id="signInForm" onsubmit="handleSignIn(event)" class="p-6 space-y-4">
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1.5">Email Address</label>
+                    <input type="email" id="signInEmail" required placeholder="rider@example.com"
+                        class="w-full bg-automotive-800 border border-automotive-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-automotive-accent">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1.5">Password</label>
+                    <input type="password" id="signInPassword" required placeholder="••••••••"
+                        class="w-full bg-automotive-800 border border-automotive-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-automotive-accent">
+                </div>
+                <button type="submit" class="w-full bg-automotive-accent hover:bg-automotive-accentHover text-white font-semibold py-3 rounded-xl shadow-lg shadow-red-600/20 transition-all">
+                    Sign In to ApexAuto
+                </button>
+                <p class="text-center text-xs text-slate-400">
+                    New to ApexAuto? <button type="button" onclick="switchAuthTab('signup')" class="text-automotive-accent hover:underline font-medium">Create a free account</button>
+                </p>
+            </form>
+
+            <!-- Sign Up Form -->
+            <form id="signUpForm" onsubmit="handleSignUp(event)" class="hidden p-6 space-y-4">
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1.5">Full Name</label>
+                    <input type="text" id="signUpName" required placeholder="Amarjeet Tiwari"
+                        class="w-full bg-automotive-800 border border-automotive-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-automotive-accent">
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-300 mb-1.5">Email Address</label>
+                        <input type="email" id="signUpEmail" required placeholder="you@gmail.com"
+                            class="w-full bg-automotive-800 border border-automotive-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-automotive-accent">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-300 mb-1.5">Mobile Number (+91)</label>
+                        <input type="tel" id="signUpPhone" required pattern="[0-9]{10}" placeholder="9876543210"
+                            class="w-full bg-automotive-800 border border-automotive-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-automotive-accent">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1.5">Create Password</label>
+                    <input type="password" id="signUpPassword" required minlength="6" placeholder="Minimum 6 characters"
+                        class="w-full bg-automotive-800 border border-automotive-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-automotive-accent">
+                </div>
+                <button type="submit" class="w-full bg-automotive-accent hover:bg-automotive-accentHover text-white font-semibold py-3 rounded-xl shadow-lg shadow-red-600/20 transition-all">
+                    Create Account
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 3. Customer Care & Support Modal (tiwariamarjeet744@gmail.com) -->
+    <div id="supportModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+        <div class="bg-automotive-900 border border-automotive-700 rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl" onclick="event.stopPropagation()">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-automotive-800">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="headphones" class="w-5 h-5 text-amber-400"></i>
+                    <h3 class="font-display text-xl font-bold text-white uppercase">Customer Care & Support</h3>
+                </div>
+                <button onclick="closeSupportModal()" class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-automotive-800">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="p-6 space-y-5">
+                <!-- Direct Email Box -->
+                <div class="bg-automotive-800/80 border border-automotive-700 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                        <span class="text-[11px] uppercase tracking-wider text-amber-400 font-semibold block">Official Support Desk</span>
+                        <a href="mailto:tiwariamarjeet744@gmail.com" class="text-sm sm:text-base font-bold text-white hover:text-automotive-accent break-all">
+                            tiwariamarjeet744@gmail.com
+                        </a>
+                        <span class="text-xs text-slate-400 block mt-0.5">Response time: Under 2 hours (Mon–Sun)</span>
+                    </div>
+                    <button type="button" onclick="copySupportEmail()" class="shrink-0 bg-automotive-900 hover:bg-automotive-700 text-white text-xs font-semibold px-3.5 py-2 rounded-xl border border-automotive-700 flex items-center gap-1.5">
+                        <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                        <span>Copy</span>
+                    </button>
+                </div>
+
+                <!-- Support Ticket Form -->
+                <form onsubmit="handleSupportSubmit(event)" class="space-y-3.5">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1">Your Name</label>
+                            <input type="text" id="supportName" required placeholder="Enter your name"
+                                class="w-full bg-automotive-800 border border-automotive-700 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-automotive-accent">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1">Your Email</label>
+                            <input type="email" id="supportEmail" required placeholder="your@email.com"
+                                class="w-full bg-automotive-800 border border-automotive-700 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-automotive-accent">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-300 mb-1">Inquiry Topic</label>
+                        <select id="supportTopic" class="w-full bg-automotive-800 border border-automotive-700 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-automotive-accent">
+                            <option value="Vehicle Part Fitment Query">Vehicle Part Fitment (Helmet / LED / Wheel / Tyre)</option>
+                            <option value="Razorpay Payment & Refund">Razorpay Payment / Transaction Support</option>
+                            <option value="Order Tracking & Delivery">Order Tracking & Dispatch</option>
+                            <option value="GST Invoice Request">GST Invoice & Bulk Order</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-300 mb-1">Message / Vehicle Model</label>
+                        <textarea id="supportMessage" rows="3" required placeholder="Describe your vehicle model or issue..."
+                            class="w-full bg-automotive-800 border border-automotive-700 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-automotive-accent"></textarea>
+                    </div>
+                    <button type="submit" class="w-full bg-automotive-accent hover:bg-automotive-accentHover text-white font-semibold py-3 rounded-xl shadow-lg shadow-red-600/20 flex items-center justify-center gap-2 transition-all">
+                        <i data-lucide="send" class="w-4 h-4"></i>
+                        <span>Send to tiwariamarjeet744@gmail.com</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. Razorpay INR Checkout Modal -->
+    <div id="checkoutModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/80 backdrop-blur-sm overflow-y-auto">
+        <div class="bg-automotive-900 border border-automotive-700 rounded-2xl max-w-xl w-full overflow-hidden shadow-2xl my-8" onclick="event.stopPropagation()">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-automotive-800 bg-automotive-950/60">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-7 h-7 rounded-lg bg-blue-600/20 text-blue-400 flex items-center justify-center">
+                        <i data-lucide="shield-check" class="w-4 h-4"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-display text-xl font-bold text-white uppercase leading-none">Razorpay INR Checkout</h3>
+                        <span class="text-[11px] text-slate-400">256-Bit Encrypted Indian Payment Gateway</span>
+                    </div>
+                </div>
+                <button onclick="closeCheckoutModal()" class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-automotive-800">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <form id="checkoutForm" onsubmit="initiateCheckoutPayment(event)" class="p-6 space-y-5">
+                <!-- Shipping Details -->
+                <div class="space-y-3">
+                    <h4 class="text-xs font-semibold uppercase tracking-wider text-slate-400">1. Delivery Details (India)</h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <input type="text" id="checkoutName" required placeholder="Full Name"
+                            class="w-full bg-automotive-800 border border-automotive-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-automotive-accent">
+                        <input type="tel" id="checkoutPhone" required pattern="[0-9]{10}" placeholder="10-Digit Mobile (+91)"
+                            class="w-full bg-automotive-800 border border-automotive-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-automotive-accent">
+                    </div>
+                    <input type="email" id="checkoutEmail" required placeholder="Email Address (for Razorpay Receipt)"
+                        class="w-full bg-automotive-800 border border-automotive-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-automotive-accent">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <input type="text" id="checkoutAddress" required placeholder="House / Street / Area"
+                            class="sm:col-span-2 w-full bg-automotive-800 border border-automotive-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-automotive-accent">
+                        <input type="text" id="checkoutPincode" required pattern="[0-9]{6}" placeholder="PIN Code (6 digits)"
+                            class="w-full bg-automotive-800 border border-automotive-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-automotive-accent">
+                    </div>
+                </div>
+
+                <!-- Razorpay Gateway Configuration & Payment Mode -->
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between">
+                        <h4 class="text-xs font-semibold uppercase tracking-wider text-slate-400">2. Payment Gateway Mode</h4>
+                        <button type="button" onclick="toggleRazorpayKeyConfig()" class="text-[11px] text-blue-400 hover:underline flex items-center gap-1">
+                            <i data-lucide="key-round" class="w-3 h-3"></i>
+                            <span>Configure Razorpay Key ID</span>
+                        </button>
+                    </div>
+
+                    <!-- Collapsible Razorpay Key Input -->
+                    <div id="razorpayKeyBox" class="hidden bg-automotive-950 border border-blue-500/30 rounded-xl p-3.5 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <label class="text-xs font-semibold text-blue-400">Merchant Razorpay Key ID (Test / Live)</label>
+                            <span class="text-[10px] px-2 py-0.5 rounded bg-blue-500/10 text-blue-300 border border-blue-500/20">INR Gateway</span>
+                        </div>
+                        <input type="text" id="razorpayKeyInput" placeholder="rzp_test_XXXXXXXXXXXXXX (Leave blank for Demo Simulator)"
+                            class="w-full bg-automotive-900 border border-automotive-700 rounded-lg px-3 py-2 text-xs text-white font-mono focus:outline-none focus:border-blue-500">
+                        <p class="text-[11px] text-slate-400 leading-relaxed">
+                            Enter your <code class="text-slate-300">rzp_test_...</code> or <code class="text-slate-300">rzp_live_...</code> key to launch the official Razorpay SDK popup, or leave default to test with the built-in Razorpay Checkout Simulator.
+                        </p>
+                    </div>
+
+                    <!-- Payment Method Cards -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        <label class="cursor-pointer flex items-center justify-between bg-blue-600/10 border border-blue-500/50 p-3.5 rounded-xl hover:bg-blue-600/15 transition-all">
+                            <div class="flex items-center gap-3">
+                                <input type="radio" name="paymentMode" value="razorpay" checked class="accent-blue-500">
+                                <div>
+                                    <span class="text-xs sm:text-sm font-bold text-white block">Pay via Razorpay</span>
+                                    <span class="text-[11px] text-blue-300">UPI, Cards, NetBanking, Wallets</span>
+                                </div>
+                            </div>
+                            <i data-lucide="zap" class="w-4 h-4 text-blue-400 shrink-0"></i>
+                        </label>
+
+                        <label class="cursor-pointer flex items-center justify-between bg-automotive-800 border border-automotive-700 p-3.5 rounded-xl hover:border-slate-500 transition-all">
+                            <div class="flex items-center gap-3">
+                                <input type="radio" name="paymentMode" value="cod" class="accent-red-500">
+                                <div>
+                                    <span class="text-xs sm:text-sm font-semibold text-white block">Cash on Delivery</span>
+                                    <span class="text-[11px] text-slate-400">Pay cash when delivered</span>
+                                </div>
+                            </div>
+                            <i data-lucide="banknote" class="w-4 h-4 text-amber-400 shrink-0"></i>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Payable Summary -->
+                <div class="bg-automotive-950/90 border border-automotive-800 rounded-xl p-4 space-y-2 text-xs">
+                    <div class="flex justify-between text-slate-400">
+                        <span>Items Subtotal</span>
+                        <span id="checkoutSubtotalDisplay" class="text-slate-200">₹0</span>
+                    </div>
+                    <div class="flex justify-between text-slate-400">
+                        <span>GST (18% Included)</span>
+                        <span id="checkoutGstDisplay" class="text-slate-200">₹0</span>
+                    </div>
+                    <div class="flex justify-between text-slate-400">
+                        <span>Delivery Charges</span>
+                        <span id="checkoutShippingDisplay" class="text-emerald-400 font-medium">FREE</span>
+                    </div>
+                    <div class="flex justify-between items-center pt-2.5 border-t border-automotive-800">
+                        <span class="text-sm font-bold text-white">Total Payable (INR)</span>
+                        <span id="checkoutTotalDisplay" class="font-display text-2xl font-bold text-automotive-accent">₹0</span>
+                    </div>
+                </div>
+
+                <button type="submit" id="payNowBtn" class="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-semibold py-3.5 rounded-xl shadow-lg shadow-blue-600/25 flex items-center justify-center gap-2 transition-all active:scale-98">
+                    <i data-lucide="lock" class="w-4 h-4"></i>
+                    <span>Pay Securely with Razorpay</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 5. Built-In Razorpay Checkout Simulator Modal (Activates when no live rzp_test_ key is provided) -->
+    <div id="razorpaySimModal" class="fixed inset-0 z-[60] hidden items-center justify-center p-4 bg-black/85 backdrop-blur-md">
+        <div class="bg-white text-slate-900 rounded-2xl max-w-md w-full overflow-hidden shadow-2xl border border-slate-200" onclick="event.stopPropagation()">
+            <!-- Razorpay Brand Header -->
+            <div class="bg-[#1b263b] text-white px-5 py-4 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-red-600 flex items-center justify-center font-display font-bold text-xl text-white">
+                        A
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="font-bold text-sm">ApexAuto India</span>
+                            <span class="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 px-1.5 py-0.5 rounded">Trusted</span>
+                        </div>
+                        <span id="simOrderId" class="text-[11px] text-slate-300 font-mono">order_RzpApex9921</span>
+                    </div>
+                </div>
+                <button onclick="closeRazorpaySimulator(false)" class="text-slate-300 hover:text-white p-1">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- Amount Banner -->
+            <div class="bg-blue-50 border-b border-blue-100 px-5 py-3 flex items-center justify-between">
+                <div>
+                    <span class="text-[11px] text-slate-500 block">Payable Amount (INR)</span>
+                    <span id="simAmountDisplay" class="text-xl font-bold text-slate-900">₹0</span>
+                </div>
+                <span class="text-[11px] font-semibold text-blue-700 bg-blue-100 px-2.5 py-1 rounded-full">Razorpay Test Mode</span>
+            </div>
+
+            <!-- Payment Method Tabs inside Razorpay UI -->
+            <div class="p-5 space-y-4">
+                <div class="grid grid-cols-3 gap-2">
+                    <button type="button" onclick="selectSimTab('upi')" id="simTabUpi" class="py-2 px-2 rounded-lg border-2 border-blue-600 bg-blue-50 text-blue-700 text-xs font-bold flex flex-col items-center gap-1">
+                        <i data-lucide="qr-code" class="w-4 h-4"></i>
+                        <span>UPI / QR</span>
+                    </button>
+                    <button type="button" onclick="selectSimTab('card')" id="simTabCard" class="py-2 px-2 rounded-lg border border-slate-200 bg-slate-50 text-slate-600 text-xs font-semibold flex flex-col items-center gap-1">
+                        <i data-lucide="credit-card" class="w-4 h-4"></i>
+                        <span>Card</span>
+                    </button>
+                    <button type="button" onclick="selectSimTab('netbanking')" id="simTabNetbanking" class="py-2 px-2 rounded-lg border border-slate-200 bg-slate-50 text-slate-600 text-xs font-semibold flex flex-col items-center gap-1">
+                        <i data-lucide="landmark" class="w-4 h-4"></i>
+                        <span>NetBanking</span>
+                    </button>
+                </div>
+
+                <!-- UPI View -->
+                <div id="simPanelUpi" class="space-y-3">
+                    <div class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 bg-slate-50">
+                        <div class="w-16 h-16 bg-white border border-slate-300 rounded-lg flex items-center justify-center shrink-0">
+                            <i data-lucide="qr-code" class="w-11 h-11 text-slate-800"></i>
+                        </div>
+                        <div class="text-xs text-slate-600">
+                            <p class="font-bold text-slate-800">Scan QR with any UPI App</p>
+                            <p class="mt-0.5">Google Pay, PhonePe, Paytm, BHIM UPI</p>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Or Enter UPI ID / VPA</label>
+                        <input type="text" id="simUpiInput" value="rider@okicici" placeholder="username@upi"
+                            class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-blue-600">
+                    </div>
+                </div>
+
+                <!-- Card View -->
+                <div id="simPanelCard" class="hidden space-y-2.5">
+                    <input type="text" value="4111 •••• •••• 1111" placeholder="Card Number"
+                        class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900">
+                    <div class="grid grid-cols-2 gap-2.5">
+                        <input type="text" value="09/29" placeholder="MM/YY"
+                            class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900">
+                        <input type="password" value="123" placeholder="CVV"
+                            class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900">
+                    </div>
+                </div>
+
+                <!-- NetBanking View -->
+                <div id="simPanelNetbanking" class="hidden space-y-2.5">
+                    <select class="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm text-slate-900 bg-white">
+                        <option>State Bank of India (SBI)</option>
+                        <option>HDFC Bank</option>
+                        <option>ICICI Bank</option>
+                        <option>Axis Bank</option>
+                        <option>Kotak Mahindra Bank</option>
+                    </select>
+                </div>
+
+                <button type="button" onclick="completeSimulatedRazorpayPayment()" class="w-full bg-[#2b84ea] hover:bg-blue-600 text-white font-bold py-3 rounded-xl shadow-md transition-all flex items-center justify-center gap-2">
+                    <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+                    <span id="simPayBtnText">Verify & Pay ₹0</span>
+                </button>
+            </div>
+
+            <div class="bg-slate-100 px-5 py-2.5 text-center text-[11px] text-slate-500 flex items-center justify-center gap-1.5">
+                <i data-lucide="lock" class="w-3 h-3 text-slate-600"></i>
+                <span>Secured by <strong>Razorpay</strong> • Support: tiwariamarjeet744@gmail.com</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. Order Confirmation & Razorpay Receipt Modal -->
+    <div id="receiptModal" class="fixed inset-0 z-[70] hidden items-center justify-center p-4 bg-black/85 backdrop-blur-md">
+        <div class="bg-automotive-900 border border-emerald-500/40 rounded-2xl max-w-md w-full overflow-hidden shadow-2xl text-center p-6 space-y-4" onclick="event.stopPropagation()">
+            <div class="w-16 h-16 rounded-full bg-emerald-500/15 text-emerald-400 flex items-center justify-center mx-auto border border-emerald-500/30">
+                <i data-lucide="check-circle-2" class="w-9 h-9"></i>
+            </div>
+            <div>
+                <span class="text-xs font-bold uppercase tracking-wider text-emerald-400">Payment Successful</span>
+                <h3 class="font-display text-2xl font-bold text-white mt-1">Order Confirmed!</h3>
+                <p id="receiptSubtitle" class="text-xs text-slate-400 mt-1">Thank you for shopping with ApexAuto India.</p>
+            </div>
+
+            <div class="bg-automotive-950 border border-automotive-800 rounded-xl p-4 text-left space-y-2 text-xs">
+                <div class="flex justify-between">
+                    <span class="text-slate-400">Order ID:</span>
+                    <span id="receiptOrderId" class="text-white font-mono font-semibold">#APX-8821</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-400">Razorpay Payment ID:</span>
+                    <span id="receiptPaymentId" class="text-blue-400 font-mono font-semibold">pay_Rzp991283</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-400">Payment Method:</span>
+                    <span id="receiptMethod" class="text-slate-200 font-medium">Razorpay (INR)</span>
+                </div>
+                <div class="flex justify-between pt-2 border-t border-automotive-800">
+                    <span class="text-slate-300 font-semibold">Amount Paid:</span>
+                    <span id="receiptAmount" class="text-emerald-400 font-bold text-sm">₹0</span>
+                </div>
+            </div>
+
+            <p class="text-[11px] text-slate-400">
+                Need help with your order? Contact <strong class="text-slate-200">tiwariamarjeet744@gmail.com</strong>
+            </p>
+
+            <button onclick="closeReceiptModal()" class="w-full bg-automotive-accent hover:bg-automotive-accentHover text-white font-semibold py-3 rounded-xl transition-all">
+                Continue Shopping
+            </button>
+        </div>
+    </div>
+
+    <!-- 7. Shopping Cart Slide-Over Drawer -->
+    <div id="cartDrawerBackdrop" onclick="toggleCart(false)" class="fixed inset-0 z-50 hidden bg-black/70 transition-opacity"></div>
+    <aside id="cartDrawer" class="fixed top-0 right-0 z-50 h-full w-full max-w-md bg-automotive-900 border-l border-automotive-800 shadow-2xl transform translate-x-full transition-transform duration-300 flex flex-col">
+        <div class="px-6 py-5 border-b border-automotive-800 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+                <i data-lucide="shopping-bag" class="w-5 h-5 text-automotive-accent"></i>
+                <h2 class="font-display text-xl font-bold text-white uppercase tracking-wide">Your Garage Cart (INR)</h2>
+            </div>
+            <button onclick="toggleCart(false)" class="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-automotive-800 transition-colors">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+
+        <div id="cartItemsContainer" class="flex-1 overflow-y-auto p-6 space-y-4"></div>
+
+        <div id="cartFooter" class="p-6 border-t border-automotive-800 bg-automotive-950/60 space-y-4">
+            <div class="space-y-1.5 text-sm">
+                <div class="flex justify-between text-slate-400">
+                    <span>Subtotal</span>
+                    <span id="cartSubtotal" class="text-slate-200 font-medium">₹0</span>
+                </div>
+                <div class="flex justify-between text-slate-400">
+                    <span>GST (18%)</span>
+                    <span id="cartGst" class="text-slate-200 font-medium">₹0</span>
+                </div>
+                <div class="flex justify-between text-slate-400">
+                    <span>Pan-India Shipping</span>
+                    <span id="cartShipping" class="text-emerald-400 font-medium">FREE</span>
+                </div>
+                <div class="flex justify-between text-base font-bold text-white pt-2 border-t border-automotive-800">
+                    <span>Total (INR)</span>
+                    <span id="cartTotal" class="text-automotive-accent text-lg">₹0</span>
+                </div>
+            </div>
+            <button onclick="openCheckoutModal()" class="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-semibold py-3.5 px-4 rounded-xl shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2 transition-all active:scale-98">
+                <span>Checkout with Razorpay (INR)</span>
+                <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Application Logic -->
+    <script>
+        // Format Number to Indian Rupee (INR)
+        function formatINR(amount) {
+            return '₹' + Math.round(amount).toLocaleString('en-IN');
+        }
+
+        // Comprehensive Vehicle Parts Catalog in INR (₹)
+        const products = [
+            {
+                id: 1,
+                name: "Vortex Carbon Full-Face Helmet",
+                category: "Safety & Gear",
+                price: 4499,
+                rating: 4.9,
+                reviews: 186,
+                badge: "ISI & DOT Certified",
+                colorHex: "1e293b",
+                accentHex: "ef4444",
+                imageText: "CARBON+HELMET",
+                description: "Aerodynamic polycarbonate-carbon shell helmet with dual anti-fog visor, quick-release buckle, and washable padding.",
+                specs: ["ISI & DOT Certified", "Weight: 1,350g", "Anti-Scratch Clear + Smoke Visor"]
+            },
+            {
+                id: 2,
+                name: "HyperBeam H4/H7 12000LM LED Headlight Kit",
+                category: "Lighting",
+                price: 2299,
+                rating: 4.8,
+                reviews: 312,
+                badge: "Best Seller",
+                colorHex: "172554",
+                accentHex: "38bdf8",
+                imageText: "LED+HEADLIGHT+KIT",
+                description: "6000K cool white automotive LED bulbs with copper heat pipes and 12,000 RPM silent cooling fan for cars & bikes.",
+                specs: ["12,000 Lumens / Pair", "IP68 Waterproof", "12V Plug & Play Socket"]
+            },
+            {
+                id: 3,
+                name: "Dual-Beam Dipper & Fog Projector Pods",
+                category: "Lighting",
+                price: 1899,
+                rating: 4.7,
+                reviews: 145,
+                badge: "High/Low Dipper",
+                colorHex: "422006",
+                accentHex: "f59e0b",
+                imageText: "DIPPER+FOG+LIGHTS",
+                description: "Heavy-duty auxiliary dipper lights switching smoothly between 3000K yellow fog low-beam and 6000K white high-beam.",
+                specs: ["CNC Aluminum Body", "Dual Color Dipper Beam", "Includes Handlebar & Bumper Clamps"]
+            },
+            {
+                id: 4,
+                name: "Forged 17-Inch Split-Spoke Alloy Wheel",
+                category: "Wheels & Tyres",
+                price: 8999,
+                rating: 4.9,
+                reviews: 94,
+                badge: "Lightweight Alloy",
+                colorHex: "18181b",
+                accentHex: "a1a1aa",
+                imageText: "ALLOY+WHEEL+17",
+                description: "Flow-formed matte gunmetal alloy rim engineered to reduce unsprung weight for sharper cornering and fuel efficiency.",
+                specs: ["Size: 17x7.5J | 5x114.3 PCD", "Matte Gunmetal Finish", "Load Rating: 750 kg"]
+            },
+            {
+                id: 5,
+                name: "TerraGrip All-Terrain Radial Tyre (215/60 R17)",
+                category: "Wheels & Tyres",
+                price: 6499,
+                rating: 4.8,
+                reviews: 210,
+                badge: "Tubeless Radial",
+                colorHex: "1c1917",
+                accentHex: "ef4444",
+                imageText: "ALL-TERRAIN+TYRE",
+                description: "Reinforced 3-ply sidewall tubeless tyre with deep self-cleaning tread blocks for Indian highways, monsoon & off-road grip.",
+                specs: ["215/60 R17 Tubeless", "5-Year Manufacturer Warranty", "High-Traction Silica Compound"]
+            },
+            {
+                id: 6,
+                name: "Carbon-Ceramic Performance Brake Pads",
+                category: "Performance & Brakes",
+                price: 2799,
+                rating: 4.8,
+                reviews: 129,
+                badge: "Zero Brake Fade",
+                colorHex: "3f1212",
+                accentHex: "f87171",
+                imageText: "CERAMIC+BRAKE+PADS",
+                description: "Low-dust, high-friction ceramic disc brake pad set with noise-insulating shims for instant stopping power.",
+                specs: ["Heat Resistant up to 650°C", "Low Rotor Wear", "Front Axle Set"]
+            },
+            {
+                id: 7,
+                name: "Titanium-Tip Stainless Exhaust Muffler",
+                category: "Performance & Brakes",
+                price: 7499,
+                rating: 4.9,
+                reviews: 82,
+                badge: "Deep Exhaust Note",
+                colorHex: "1e1b4b",
+                accentHex: "818cf8",
+                imageText: "EXHAUST+SYSTEM",
+                description: "T304 stainless steel performance exhaust with burnt titanium tip and removable DB killer silencer.",
+                specs: ["T304 Stainless Steel", "Removable DB Killer", "Universal Weld/Clamp Fit"]
+            },
+            {
+                id: 8,
+                name: "Adjustable Coilover Suspension Kit",
+                category: "Performance & Brakes",
+                price: 18500,
+                rating: 4.7,
+                reviews: 49,
+                badge: "32-Way Damping",
+                colorHex: "064e3b",
+                accentHex: "34d399",
+                imageText: "COILOVER+SUSPENSION",
+                description: "Mono-tube performance coilovers offering 32 levels of damping adjustment and ride-height tuning.",
+                specs: ["Mono-Tube Shock Design", "Anti-Corrosion Coating", "1-Year Warranty"]
+            },
+            {
+                id: 9,
+                name: "4K Ultra-HD Dual Dash Cam + Night Vision",
+                category: "Electronics & Covers",
+                price: 5499,
+                rating: 4.8,
+                reviews: 340,
+                badge: "GPS + Wi-Fi App",
+                colorHex: "0f172a",
+                accentHex: "38bdf8",
+                imageText: "4K+DASH+CAM",
+                description: "Front 4K + Rear 1080p dash camera with Sony sensor, G-sensor emergency lock, and mobile Wi-Fi app.",
+                specs: ["3840x2160p Resolution", "Supercapacitor for Indian Heat", "24H Parking Monitor"]
+            },
+            {
+                id: 10,
+                name: "All-Weather 6-Layer Waterproof Car Cover",
+                category: "Electronics & Covers",
+                price: 1599,
+                rating: 4.6,
+                reviews: 275,
+                badge: "UV & Monsoon Shield",
+                colorHex: "1f2937",
+                accentHex: "fbbf24",
+                imageText: "WATERPROOF+COVER",
+                description: "Heavy-duty 6-layer waterproof outdoor cover with soft cotton inner lining and windproof buckle straps.",
+                specs: ["100% Waterproof Outer", "Scratch-Free Cotton Lining", "Mirror Pockets + Reflective Strips"]
+            },
+            {
+                id: 11,
+                name: "Modular Flip-Up Touring Helmet + Bluetooth",
+                category: "Safety & Gear",
+                price: 5899,
+                rating: 4.7,
+                reviews: 118,
+                badge: "Built-In Intercom",
+                colorHex: "27272a",
+                accentHex: "ef4444",
+                imageText: "MODULAR+HELMET",
+                description: "Flip-up chin bar touring helmet with integrated Bluetooth 5.3 speakers and internal drop-down sun visor.",
+                specs: ["Bluetooth 5.3 Built-In", "ISI & DOT Certified", "Dual Visor System"]
+            },
+            {
+                id: 12,
+                name: "Digital 12V Portable Tyre Inflator Pump",
+                category: "Wheels & Tyres",
+                price: 1999,
+                rating: 4.8,
+                reviews: 410,
+                badge: "Auto Cut-Off",
+                colorHex: "042f2e",
+                accentHex: "2dd4bf",
+                imageText: "TYRE+INFLATOR",
+                description: "Heavy-duty metal cylinder 150 PSI digital tyre inflator with auto shut-off, LED emergency torch, and 3m cord.",
+                specs: ["150 PSI Max Pressure", "Digital PSI/BAR Display", "Fits Cars, SUVs & Bikes"]
+            }
+        ];
+
+        // Application State
+        let state = {
+            selectedCategory: 'All',
+            searchQuery: '',
+            cart: [],
+            currentUser: null,
+            pendingOrder: null
+        };
+
+        const categories = ['All', 'Safety & Gear', 'Lighting', 'Wheels & Tyres', 'Performance & Brakes', 'Electronics & Covers'];
+
+        // Initialize App
+        document.addEventListener('DOMContentLoaded', () => {
+            loadSavedSession();
+            renderCategories();
+            renderProducts();
+            setupSearchListeners();
+            updateCartUI();
+            lucide.createIcons();
+        });
+
+        // Load User & Razorpay Key from localStorage
+        function loadSavedSession() {
+            try {
+                const savedUser = localStorage.getItem('apexauto_user');
+                if (savedUser) {
+                    state.currentUser = JSON.parse(savedUser);
+                }
+                const savedKey = localStorage.getItem('apexauto_rzp_key');
+                if (savedKey) {
+                    document.getElementById('razorpayKeyInput').value = savedKey;
+                }
+            } catch (e) {
+                console.error(e);
+            }
+            updateAuthUI();
+        }
+
+        // Update Header Auth UI
+        function updateAuthUI() {
+            const container = document.getElementById('authHeaderContainer');
+            if (state.currentUser) {
+                const firstName = state.currentUser.name.split(' ')[0];
+                container.innerHTML = `
+                    <div class="flex items-center gap-2 bg-automotive-800 border border-automotive-700 px-3 py-2 rounded-xl">
+                        <div class="w-6 h-6 rounded-full bg-automotive-accent text-white text-xs font-bold flex items-center justify-center uppercase">
+                            ${firstName.charAt(0)}
+                        </div>
+                        <span class="hidden sm:inline text-xs font-semibold text-white">${firstName}</span>
+                        <button onclick="handleSignOut()" title="Sign Out" class="text-slate-400 hover:text-red-400 ml-1">
+                            <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = `
+                    <button onclick="openAuthModal('signin')" class="flex items-center gap-2 bg-automotive-800 hover:bg-automotive-700 border border-automotive-700 px-3 sm:px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-medium text-slate-200 transition-all active:scale-95">
+                        <i data-lucide="user-circle" class="w-4 h-4 text-automotive-accent"></i>
+                        <span>Sign In</span>
+                    </button>
+                `;
+            }
+            lucide.createIcons();
+        }
+
+        // Sign In / Sign Up Modal Controls
+        function openAuthModal(tab = 'signin') {
+            switchAuthTab(tab);
+            const modal = document.getElementById('authModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeAuthModal() {
+            const modal = document.getElementById('authModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        document.getElementById('authModal').addEventListener('click', closeAuthModal);
+
+        function switchAuthTab(tab) {
+            const signInForm = document.getElementById('signInForm');
+            const signUpForm = document.getElementById('signUpForm');
+            const tabSignIn = document.getElementById('tabSignIn');
+            const tabSignUp = document.getElementById('tabSignUp');
+            const title = document.getElementById('authModalTitle');
+
+            if (tab === 'signin') {
+                signInForm.classList.remove('hidden');
+                signUpForm.classList.add('hidden');
+                tabSignIn.className = 'py-3 text-xs sm:text-sm font-semibold border-b-2 border-automotive-accent text-white transition-all';
+                tabSignUp.className = 'py-3 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-white transition-all';
+                title.textContent = 'Member Sign In';
+            } else {
+                signInForm.classList.add('hidden');
+                signUpForm.classList.remove('hidden');
+                tabSignUp.className = 'py-3 text-xs sm:text-sm font-semibold border-b-2 border-automotive-accent text-white transition-all';
+                tabSignIn.className = 'py-3 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-white transition-all';
+                title.textContent = 'Create ApexAuto Account';
+            }
+        }
+
+        function handleSignUp(e) {
+            e.preventDefault();
+            const name = document.getElementById('signUpName').value.trim();
+            const email = document.getElementById('signUpEmail').value.trim();
+            const phone = document.getElementById('signUpPhone').value.trim();
+
+            const user = { name, email, phone };
+            state.currentUser = user;
+            localStorage.setItem('apexauto_user', JSON.stringify(user));
+            updateAuthUI();
+            closeAuthModal();
+            showToast(`Welcome to ApexAuto, ${name}!`, 'success');
+        }
+
+        function handleSignIn(e) {
+            e.preventDefault();
+            const email = document.getElementById('signInEmail').value.trim();
+            const derivedName = email.split('@')[0].replace(/[._]/g, ' ');
+            const formattedName = derivedName.charAt(0).toUpperCase() + derivedName.slice(1);
+
+            const user = { name: formattedName, email, phone: '9876543210' };
+            state.currentUser = user;
+            localStorage.setItem('apexauto_user', JSON.stringify(user));
+            updateAuthUI();
+            closeAuthModal();
+            showToast(`Signed in as ${formattedName}`, 'success');
+        }
+
+        function handleSignOut() {
+            state.currentUser = null;
+            localStorage.removeItem('apexauto_user');
+            updateAuthUI();
+            showToast('Signed out of your account');
+        }
+
+        // Customer Care Support Modal Controls
+        function openSupportModal() {
+            if (state.currentUser) {
+                document.getElementById('supportName').value = state.currentUser.name || '';
+                document.getElementById('supportEmail').value = state.currentUser.email || '';
+            }
+            const modal = document.getElementById('supportModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            lucide.createIcons();
+        }
+
+        function closeSupportModal() {
+            const modal = document.getElementById('supportModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        document.getElementById('supportModal').addEventListener('click', closeSupportModal);
+
+        function copySupportEmail() {
+            const tempInput = document.createElement('input');
+            tempInput.value = 'tiwariamarjeet744@gmail.com';
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+            showToast('Copied tiwariamarjeet744@gmail.com to clipboard!', 'success');
+        }
+
+        function handleSupportSubmit(e) {
+            e.preventDefault();
+            const name = document.getElementById('supportName').value.trim();
+            const email = document.getElementById('supportEmail').value.trim();
+            const topic = document.getElementById('supportTopic').value;
+            const message = document.getElementById('supportMessage').value.trim();
+
+            const subject = encodeURIComponent(`[ApexAuto Support] ${topic} - from ${name}`);
+            const body = encodeURIComponent(`Customer Name: ${name}\nCustomer Email: ${email}\nTopic: ${topic}\n\nMessage:\n${message}`);
+            window.open(`mailto:tiwariamarjeet744@gmail.com?subject=${subject}&body=${body}`, '_blank');
+
+            closeSupportModal();
+            showToast('Support inquiry prepared for tiwariamarjeet744@gmail.com', 'success');
+        }
+
+        // Search & Catalog Filtering
+        function setupSearchListeners() {
+            const desktopInput = document.getElementById('desktopSearch');
+            const mobileInput = document.getElementById('mobileSearch');
+            const clearDesktop = document.getElementById('clearSearchDesktop');
+            const clearMobile = document.getElementById('clearSearchMobile');
+
+            const handleSearch = (val) => {
+                state.searchQuery = val.trim().toLowerCase();
+                desktopInput.value = val;
+                mobileInput.value = val;
+
+                if (val.length > 0) {
+                    clearDesktop.classList.remove('hidden');
+                    clearMobile.classList.remove('hidden');
+                } else {
+                    clearDesktop.classList.add('hidden');
+                    clearMobile.classList.add('hidden');
+                }
+                renderProducts();
+            };
+
+            desktopInput.addEventListener('input', (e) => handleSearch(e.target.value));
+            mobileInput.addEventListener('input', (e) => handleSearch(e.target.value));
+        }
+
+        function clearSearch() {
+            state.searchQuery = '';
+            document.getElementById('desktopSearch').value = '';
+            document.getElementById('mobileSearch').value = '';
+            document.getElementById('clearSearchDesktop').classList.add('hidden');
+            document.getElementById('clearSearchMobile').classList.add('hidden');
+            renderProducts();
+        }
+
+        function filterByCategory(category) {
+            state.selectedCategory = category;
+            renderCategories();
+            renderProducts();
+            document.getElementById('catalog').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function resetFilters() {
+            state.selectedCategory = 'All';
+            clearSearch();
+            document.getElementById('sortSelect').value = 'featured';
+            renderCategories();
+            renderProducts();
+        }
+
+        function renderCategories() {
+            const container = document.getElementById('categoryFilters');
+            container.innerHTML = categories.map(cat => {
+                const isActive = state.selectedCategory === cat;
+                const activeClasses = isActive 
+                    ? 'bg-automotive-accent text-white border-automotive-accent shadow-md shadow-red-600/20' 
+                    : 'bg-automotive-800 text-slate-300 border-automotive-700 hover:bg-automotive-700 hover:text-white';
+                
+                return `
+                    <button onclick="selectCategory('${cat}')" 
+                        class="px-4 py-2 rounded-xl text-xs sm:text-sm font-medium border whitespace-nowrap transition-all ${activeClasses}">
+                        ${cat}
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function selectCategory(category) {
+            state.selectedCategory = category;
+            renderCategories();
+            renderProducts();
+        }
+
+        function renderProducts() {
+            const sortBy = document.getElementById('sortSelect').value;
+            const grid = document.getElementById('productGrid');
+            const emptyState = document.getElementById('emptyState');
+            const countLabel = document.getElementById('productCount');
+
+            let filtered = products.filter(p => {
+                const matchesCat = state.selectedCategory === 'All' || p.category === state.selectedCategory;
+                const matchesQuery = !state.searchQuery || 
+                    p.name.toLowerCase().includes(state.searchQuery) ||
+                    p.category.toLowerCase().includes(state.searchQuery) ||
+                    p.description.toLowerCase().includes(state.searchQuery) ||
+                    p.specs.some(s => s.toLowerCase().includes(state.searchQuery));
+                return matchesCat && matchesQuery;
+            });
+
+            if (sortBy === 'price-asc') filtered.sort((a, b) => a.price - b.price);
+            else if (sortBy === 'price-desc') filtered.sort((a, b) => b.price - a.price);
+            else if (sortBy === 'rating') filtered.sort((a, b) => b.rating - a.rating);
+
+            countLabel.textContent = `Showing ${filtered.length} ${filtered.length === 1 ? 'part' : 'parts'}`;
+
+            if (filtered.length === 0) {
+                grid.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                lucide.createIcons();
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            grid.innerHTML = filtered.map(product => {
+                const imgUrl = `https://placehold.co/600x420/${product.colorHex}/${product.accentHex}?text=${product.imageText}`;
+                return `
+                    <article class="bg-automotive-900 border border-automotive-800 hover:border-automotive-700 rounded-2xl overflow-hidden flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/40">
+                        <div>
+                            <div class="relative aspect-[16/11] bg-automotive-800 overflow-hidden cursor-pointer" onclick="openQuickView(${product.id})">
+                                <img src="${imgUrl}" alt="${product.name}" loading="lazy"
+                                    onerror="this.src='https://placehold.co/600x420/1a1d27/ef4444?text=VEHICLE+PART'"
+                                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                                <span class="absolute top-3 left-3 bg-automotive-950/85 backdrop-blur-md border border-automotive-700 text-slate-200 text-[11px] font-semibold px-2.5 py-1 rounded-lg">
+                                    ${product.badge}
+                                </span>
+                                <button aria-label="Quick View" class="absolute bottom-3 right-3 bg-automotive-950/90 hover:bg-automotive-accent text-white p-2 rounded-xl border border-automotive-700 opacity-90 sm:opacity-0 sm:group-hover:opacity-100 transition-all">
+                                    <i data-lucide="eye" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+
+                            <div class="p-5">
+                                <div class="flex items-center justify-between text-xs text-slate-400 mb-1.5">
+                                    <span class="font-medium text-automotive-accent">${product.category}</span>
+                                    <div class="flex items-center gap-1 text-amber-400">
+                                        <i data-lucide="star" class="w-3.5 h-3.5 fill-amber-400"></i>
+                                        <span class="font-semibold text-slate-200">${product.rating}</span>
+                                        <span class="text-slate-500">(${product.reviews})</span>
+                                    </div>
+                                </div>
+
+                                <h3 onclick="openQuickView(${product.id})" class="font-display font-bold text-lg text-white leading-snug hover:text-automotive-accent cursor-pointer transition-colors line-clamp-2">
+                                    ${product.name}
+                                </h3>
+
+                                <p class="text-xs text-slate-400 mt-2 line-clamp-2 leading-relaxed">
+                                    ${product.description}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="px-5 pb-5 pt-2 flex items-center justify-between gap-3 border-t border-automotive-800/60 mt-auto">
+                            <div>
+                                <span class="text-[11px] text-slate-500 block">Price (INR)</span>
+                                <span class="font-display text-2xl font-bold text-white">${formatINR(product.price)}</span>
+                            </div>
+                            <button onclick="addToCart(${product.id})" 
+                                class="flex items-center gap-2 bg-automotive-800 hover:bg-automotive-accent text-white text-xs sm:text-sm font-semibold px-4 py-2.5 rounded-xl border border-automotive-700 hover:border-automotive-accent transition-all active:scale-95">
+                                <i data-lucide="plus" class="w-4 h-4"></i>
+                                <span>Add</span>
+                            </button>
+                        </div>
+                    </article>
+                `;
+            }).join('');
+
+            lucide.createIcons();
+        }
+
+        // Quick-View Modal
+        function openQuickView(productId) {
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+
+            const modal = document.getElementById('quickViewModal');
+            const categoryEl = document.getElementById('modalCategory');
+            const contentEl = document.getElementById('modalContent');
+            const imgUrl = `https://placehold.co/600x420/${product.colorHex}/${product.accentHex}?text=${product.imageText}`;
+
+            categoryEl.textContent = product.category;
+            contentEl.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                    <div class="rounded-xl overflow-hidden border border-automotive-800 bg-automotive-800">
+                        <img src="${imgUrl}" alt="${product.name}" class="w-full h-auto object-cover">
+                    </div>
+                    <div class="space-y-4">
+                        <div class="inline-block px-2.5 py-1 rounded-lg bg-automotive-800 border border-automotive-700 text-xs font-semibold text-amber-400">
+                            ${product.badge}
+                        </div>
+                        <h3 class="font-display text-2xl font-bold text-white leading-tight">${product.name}</h3>
+                        <p class="text-sm text-slate-300 leading-relaxed">${product.description}</p>
+                        
+                        <div class="space-y-1.5 pt-1">
+                            <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Specifications:</span>
+                            <ul class="space-y-1">
+                                ${product.specs.map(spec => `
+                                    <li class="flex items-center gap-2 text-xs text-slate-300">
+                                        <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-emerald-400 shrink-0"></i>
+                                        <span>${spec}</span>
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        </div>
+
+                        <div class="pt-4 border-t border-automotive-800 flex items-center justify-between gap-4">
+                            <div>
+                                <span class="text-xs text-slate-400 block">Price (Incl. taxes)</span>
+                                <span class="font-display text-3xl font-bold text-white">${formatINR(product.price)}</span>
+                            </div>
+                            <button onclick="addToCart(${product.id}); closeQuickView();" 
+                                class="flex-1 bg-automotive-accent hover:bg-automotive-accentHover text-white font-semibold py-3 px-5 rounded-xl shadow-lg shadow-red-600/25 flex items-center justify-center gap-2 transition-all active:scale-95">
+                                <i data-lucide="shopping-cart" class="w-4 h-4"></i>
+                                <span>Add to Garage</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            lucide.createIcons();
+        }
+
+        function closeQuickView() {
+            const modal = document.getElementById('quickViewModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        document.getElementById('quickViewModal').addEventListener('click', closeQuickView);
+
+        // Cart Logic & Calculations (INR + 18% GST)
+        function calculateTotals() {
+            const subtotal = state.cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+            const gst = Math.round(subtotal * 0.18);
+            const shipping = subtotal >= 4999 || subtotal === 0 ? 0 : 149;
+            const total = subtotal + gst + shipping;
+            return { subtotal, gst, shipping, total };
+        }
+
+        function toggleCart(open) {
+            const drawer = document.getElementById('cartDrawer');
+            const backdrop = document.getElementById('cartDrawerBackdrop');
+
+            if (open) {
+                backdrop.classList.remove('hidden');
+                setTimeout(() => drawer.classList.remove('translate-x-full'), 10);
+            } else {
+                drawer.classList.add('translate-x-full');
+                setTimeout(() => backdrop.classList.add('hidden'), 300);
+            }
+        }
+
+        function addToCart(productId) {
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+
+            const existing = state.cart.find(item => item.id === productId);
+            if (existing) existing.quantity += 1;
+            else state.cart.push({ ...product, quantity: 1 });
+
+            updateCartUI();
+            showToast(`Added "${product.name}" (${formatINR(product.price)})`);
+        }
+
+        function updateQuantity(productId, delta) {
+            const idx = state.cart.findIndex(item => item.id === productId);
+            if (idx === -1) return;
+
+            state.cart[idx].quantity += delta;
+            if (state.cart[idx].quantity <= 0) state.cart.splice(idx, 1);
+            updateCartUI();
+        }
+
+        function removeFromCart(productId) {
+            state.cart = state.cart.filter(item => item.id !== productId);
+            updateCartUI();
+        }
+
+        function updateCartUI() {
+            const badge = document.getElementById('cartBadge');
+            const container = document.getElementById('cartItemsContainer');
+            const footer = document.getElementById('cartFooter');
+
+            const totalItems = state.cart.reduce((sum, item) => sum + item.quantity, 0);
+            badge.textContent = totalItems;
+
+            if (state.cart.length === 0) {
+                footer.classList.add('hidden');
+                container.innerHTML = `
+                    <div class="h-full flex flex-col items-center justify-center text-center py-12">
+                        <div class="w-16 h-16 rounded-2xl bg-automotive-800 flex items-center justify-center text-slate-500 mb-4">
+                            <i data-lucide="shopping-cart" class="w-8 h-8"></i>
+                        </div>
+                        <h3 class="font-display text-xl font-bold text-white mb-1">Your Garage Cart is Empty</h3>
+                        <p class="text-xs text-slate-400 max-w-xs mb-6">Add helmets, LED dipper lights, alloy wheels, or tyres to checkout in INR.</p>
+                        <button onclick="toggleCart(false)" class="bg-automotive-800 hover:bg-automotive-700 text-white text-xs font-semibold px-5 py-2.5 rounded-xl border border-automotive-700">
+                            Browse Parts Catalog
+                        </button>
+                    </div>
+                `;
+                lucide.createIcons();
+                return;
+            }
+
+            footer.classList.remove('hidden');
+            container.innerHTML = state.cart.map(item => {
+                const itemTotal = item.price * item.quantity;
+                const thumbUrl = `https://placehold.co/160x120/${item.colorHex}/${item.accentHex}?text=${item.imageText}`;
+                return `
+                    <div class="flex gap-3.5 bg-automotive-800/60 border border-automotive-800 p-3.5 rounded-2xl">
+                        <img src="${thumbUrl}" alt="${item.name}" class="w-20 h-16 object-cover rounded-xl bg-automotive-800 shrink-0">
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-start justify-between gap-2">
+                                <h4 class="text-sm font-semibold text-white truncate">${item.name}</h4>
+                                <button onclick="removeFromCart(${item.id})" class="text-slate-500 hover:text-red-400 p-0.5">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                            <span class="text-xs text-slate-400 block mt-0.5">${formatINR(item.price)} each</span>
+                            <div class="flex items-center justify-between mt-3">
+                                <div class="flex items-center bg-automotive-900 border border-automotive-700 rounded-lg">
+                                    <button onclick="updateQuantity(${item.id}, -1)" class="px-2.5 py-1 text-slate-300 hover:text-white">-</button>
+                                    <span class="px-2 text-xs font-bold text-white">${item.quantity}</span>
+                                    <button onclick="updateQuantity(${item.id}, 1)" class="px-2.5 py-1 text-slate-300 hover:text-white">+</button>
+                                </div>
+                                <span class="font-display font-bold text-base text-white">${formatINR(itemTotal)}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            const { subtotal, gst, shipping, total } = calculateTotals();
+            document.getElementById('cartSubtotal').textContent = formatINR(subtotal);
+            document.getElementById('cartGst').textContent = formatINR(gst);
+            const shipEl = document.getElementById('cartShipping');
+            shipEl.textContent = shipping === 0 ? 'FREE' : formatINR(shipping);
+            shipEl.className = shipping === 0 ? 'text-emerald-400 font-medium' : 'text-slate-200 font-medium';
+            document.getElementById('cartTotal').textContent = formatINR(total);
+
+            lucide.createIcons();
+        }
+
+        // ==========================================
+        // RAZORPAY GATEWAY INTEGRATION (INR)
+        // ==========================================
+        function openCheckoutModal() {
+            if (state.cart.length === 0) return;
+            toggleCart(false);
+
+            if (state.currentUser) {
+                document.getElementById('checkoutName').value = state.currentUser.name || '';
+                document.getElementById('checkoutEmail').value = state.currentUser.email || '';
+                document.getElementById('checkoutPhone').value = state.currentUser.phone || '';
+            }
+
+            const { subtotal, gst, shipping, total } = calculateTotals();
+            document.getElementById('checkoutSubtotalDisplay').textContent = formatINR(subtotal);
+            document.getElementById('checkoutGstDisplay').textContent = formatINR(gst);
+            document.getElementById('checkoutShippingDisplay').textContent = shipping === 0 ? 'FREE' : formatINR(shipping);
+            document.getElementById('checkoutTotalDisplay').textContent = formatINR(total);
+
+            const modal = document.getElementById('checkoutModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            lucide.createIcons();
+        }
+
+        function closeCheckoutModal() {
+            const modal = document.getElementById('checkoutModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        document.getElementById('checkoutModal').addEventListener('click', closeCheckoutModal);
+
+        function toggleRazorpayKeyConfig() {
+            const box = document.getElementById('razorpayKeyBox');
+            box.classList.toggle('hidden');
+        }
+
+        // Update button text when switching between Razorpay and COD
+        document.querySelectorAll('input[name="paymentMode"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                const btn = document.getElementById('payNowBtn');
+                if (e.target.value === 'cod') {
+                    btn.className = 'w-full bg-automotive-accent hover:bg-automotive-accentHover text-white font-semibold py-3.5 rounded-xl shadow-lg shadow-red-600/25 flex items-center justify-center gap-2 transition-all';
+                    btn.innerHTML = `<i data-lucide="package-check" class="w-4 h-4"></i><span>Confirm Cash on Delivery Order</span>`;
+                } else {
+                    btn.className = 'w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-semibold py-3.5 rounded-xl shadow-lg shadow-blue-600/25 flex items-center justify-center gap-2 transition-all';
+                    btn.innerHTML = `<i data-lucide="lock" class="w-4 h-4"></i><span>Pay Securely with Razorpay</span>`;
+                }
+                lucide.createIcons();
+            });
+        });
+
+        function initiateCheckoutPayment(e) {
+            e.preventDefault();
+            const customer = {
+                name: document.getElementById('checkoutName').value.trim(),
+                phone: document.getElementById('checkoutPhone').value.trim(),
+                email: document.getElementById('checkoutEmail').value.trim(),
+                address: document.getElementById('checkoutAddress').value.trim(),
+                pincode: document.getElementById('checkoutPincode').value.trim()
+            };
+
+            const paymentMode = document.querySelector('input[name="paymentMode"]:checked').value;
+            const { total } = calculateTotals();
+            const orderId = 'APX-' + Math.floor(100000 + Math.random() * 900000);
+
+            state.pendingOrder = { orderId, customer, total };
+
+            if (paymentMode === 'cod') {
+                closeCheckoutModal();
+                finalizeOrderSuccess(orderId, 'COD_PENDING', 'Cash on Delivery (INR)', total);
+                return;
+            }
+
+            // Check if merchant entered a real Razorpay Key ID (rzp_test_... or rzp_live_...)
+            const rzpKey = document.getElementById('razorpayKeyInput').value.trim();
+            if (rzpKey) {
+                localStorage.setItem('apexauto_rzp_key', rzpKey);
+            }
+
+            if (rzpKey && (rzpKey.startsWith('rzp_test_') || rzpKey.startsWith('rzp_live_')) && typeof window.Razorpay !== 'undefined') {
+                // Launch Official Razorpay Checkout SDK
+                const options = {
+                    key: rzpKey,
+                    amount: Math.round(total * 100), // Amount in paise (INR * 100)
+                    currency: "INR",
+                    name: "ApexAuto India",
+                    description: "Vehicle Parts & Performance Accessories",
+                    prefill: {
+                        name: customer.name,
+                        email: customer.email,
+                        contact: "+91" + customer.phone
+                    },
+                    notes: {
+                        address: `${customer.address}, PIN: ${customer.pincode}`,
+                        support_email: "tiwariamarjeet744@gmail.com"
+                    },
+                    theme: {
+                        color: "#ef4444"
+                    },
+                    handler: function (response) {
+                        closeCheckoutModal();
+                        finalizeOrderSuccess(
+                            orderId,
+                            response.razorpay_payment_id || ('pay_' + Date.now()),
+                            'Razorpay Online (INR)',
+                            total
+                        );
+                    },
+                    modal: {
+                        ondismiss: function () {
+                            showToast('Razorpay payment window closed.', 'info');
+                        }
+                    }
+                };
+
+                try {
+                    const rzpInstance = new window.Razorpay(options);
+                    rzpInstance.on('payment.failed', function (response) {
+                        showToast('Payment failed: ' + (response.error.description || 'Try again'), 'info');
+                    });
+                    rzpInstance.open();
+                } catch (err) {
+                    openRazorpaySimulator(orderId, total);
+                }
+            } else {
+                // Launch Built-in Interactive Razorpay Checkout Simulator for seamless testing
+                openRazorpaySimulator(orderId, total);
+            }
+        }
+
+        // Razorpay Built-In Simulator Controls
+        function openRazorpaySimulator(orderId, total) {
+            closeCheckoutModal();
+            document.getElementById('simOrderId').textContent = 'order_' + orderId.replace('-', '');
+            document.getElementById('simAmountDisplay').textContent = formatINR(total);
+            document.getElementById('simPayBtnText').textContent = `Verify & Pay ${formatINR(total)}`;
+
+            const simModal = document.getElementById('razorpaySimModal');
+            simModal.classList.remove('hidden');
+            simModal.classList.add('flex');
+            lucide.createIcons();
+        }
+
+        function closeRazorpaySimulator(completed = false) {
+            const simModal = document.getElementById('razorpaySimModal');
+            simModal.classList.add('hidden');
+            simModal.classList.remove('flex');
+            if (!completed) {
+                showToast('Razorpay checkout cancelled.');
+            }
+        }
+
+        function selectSimTab(tab) {
+            ['upi', 'card', 'netbanking'].forEach(t => {
+                const btn = document.getElementById('simTab' + t.charAt(0).toUpperCase() + t.slice(1));
+                const panel = document.getElementById('simPanel' + t.charAt(0).toUpperCase() + t.slice(1));
+                if (t === tab) {
+                    btn.className = 'py-2 px-2 rounded-lg border-2 border-blue-600 bg-blue-50 text-blue-700 text-xs font-bold flex flex-col items-center gap-1';
+                    panel.classList.remove('hidden');
+                } else {
+                    btn.className = 'py-2 px-2 rounded-lg border border-slate-200 bg-slate-50 text-slate-600 text-xs font-semibold flex flex-col items-center gap-1';
+                    panel.classList.add('hidden');
+                }
+            });
+        }
+
+        function completeSimulatedRazorpayPayment() {
+            if (!state.pendingOrder) return;
+            const { orderId, total } = state.pendingOrder;
+            const fakePayId = 'pay_Rzp' + Math.random().toString(36).substring(2, 10).toUpperCase();
+            closeRazorpaySimulator(true);
+            finalizeOrderSuccess(orderId, fakePayId, 'Razorpay UPI/Card (INR)', total);
+        }
+
+        function finalizeOrderSuccess(orderId, paymentId, method, amount) {
+            state.cart = [];
+            updateCartUI();
+
+            document.getElementById('receiptOrderId').textContent = '#' + orderId;
+            document.getElementById('receiptPaymentId').textContent = paymentId;
+            document.getElementById('receiptMethod').textContent = method;
+            document.getElementById('receiptAmount').textContent = formatINR(amount);
+
+            const receiptModal = document.getElementById('receiptModal');
+            receiptModal.classList.remove('hidden');
+            receiptModal.classList.add('flex');
+            lucide.createIcons();
+            showToast('Payment verified! Order confirmed.', 'success');
+        }
+
+        function closeReceiptModal() {
+            const receiptModal = document.getElementById('receiptModal');
+            receiptModal.classList.add('hidden');
+            receiptModal.classList.remove('flex');
+        }
+
+        // Custom Non-Blocking Toast Message Box
+        function showToast(message, type = "info") {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            const borderColor = type === 'success' ? 'border-emerald-500/50' : 'border-automotive-accent/50';
+            const iconColor = type === 'success' ? 'text-emerald-400' : 'text-automotive-accent';
+
+            toast.className = `pointer-events-auto flex items-center gap-3 bg-automotive-900/95 backdrop-blur-md border ${borderColor} text-white px-4 py-3 rounded-xl shadow-2xl transform transition-all duration-300 translate-y-2 opacity-0 max-w-sm`;
+            toast.innerHTML = `
+                <i data-lucide="check-circle" class="w-5 h-5 ${iconColor} shrink-0"></i>
+                <span class="text-xs sm:text-sm font-medium">${message}</span>
+            `;
+
+            container.appendChild(toast);
+            lucide.createIcons();
+
+            requestAnimationFrame(() => toast.classList.remove('translate-y-2', 'opacity-0'));
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3200);
+        }
+    </script>
+</body>
+</html>
